@@ -47,32 +47,42 @@ def read_repo_data(repo_owner, repo_name):
     return repository_data
 
 
+import re
 
-def sliding_window(seq, size, step):
-    if size <= 0 or step <= 0:
-        raise ValueError("size and step must be positive")
+def split_markdown_by_level(text, level=2):
+    """
+    Split markdown text by a specific header level.
 
-    n = len(seq)
-    result = []
-    for i in range(0, n, step):
-        batch = seq[i:i+size]
-        result.append({'start': i, 'content': batch})
-        if i + size > n:
-            break
+    :param text: Markdown text as a string
+    :param level: Header level to split on
+    :return: List of sections as strings
+    """
+    # This regex matches markdown headers
+    # For level 2, it matches lines starting with "## "
+    header_pattern = r'^(#{' + str(level) + r'} )(.+)$'
+    pattern = re.compile(header_pattern, re.MULTILINE)
 
-    return result
+    # Split and keep the headers
+    parts = pattern.split(text)
 
+    sections = []
+    for i in range(1, len(parts), 3):
+        # We step by 3 because regex.split() with
+        # capturing groups returns:
+        # [before_match, group1, group2, after_match, ...]
+        # here group1 is "## ", group2 is the header text
+        header = parts[i] + parts[i+1]  # "## " + "Title"
+        header = header.strip()
 
+        # Get the content after this header
+        content = ""
+        if i+2 < len(parts):
+            content = parts[i+2].strip()
 
-def chunk_documents(docs, size=2000, step=1000):
-    chunks = []
+        if content:
+            section = f'{header}\n\n{content}'
+        else:
+            section = header
+        sections.append(section)
 
-    for doc in docs:
-        doc_copy = doc.copy()
-        doc_content = doc_copy.pop('content')
-        doc_chunks = sliding_window(doc_content, size=size, step=step)
-        for chunk in doc_chunks:
-            chunk.update(doc_copy)
-        chunks.extend(doc_chunks)
-
-    return chunks
+    return sections
