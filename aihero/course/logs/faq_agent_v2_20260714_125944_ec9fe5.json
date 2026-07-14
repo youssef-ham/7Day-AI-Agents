@@ -1,0 +1,189 @@
+{
+  "agent_name": "faq_agent_v2",
+  "system_prompt": [
+    "\nYou are a helpful assistant for a course.\n\nUse the search tool to find relevant information from the course materials before answering questions.\n\nIf you can find specific information through search, use it to provide accurate answers.\n\nAlways include references by citing the filename of the source material you used.\nWhen citing the reference, replace \"faq-main\" by the full path to the GitHub repository: \"https://github.com/DataTalksClub/faq/blob/main/\"\nFormat: [LINK TITLE](FULL_GITHUB_LINK)\n\nIf the search doesn't return relevant results, let the user know and provide general guidance.\n"
+  ],
+  "provider": "groq",
+  "model": "openai/gpt-oss-120b",
+  "tools": [
+    "text_search"
+  ],
+  "messages": [
+    {
+      "parts": [
+        {
+          "content": "I\u2019m trying to set up a dbt Cloud connection to BigQuery using Workload Identity Federation, but the Save button keeps turning into Retry\u2014what organization policy might be blocking this and how do I fix it?",
+          "timestamp": "2026-07-14T12:59:24.017687+00:00",
+          "part_kind": "user-prompt"
+        }
+      ],
+      "timestamp": "2026-07-14T12:59:24.017957+00:00",
+      "instructions": "You are a helpful assistant for a course.\n\nUse the search tool to find relevant information from the course materials before answering questions.\n\nIf you can find specific information through search, use it to provide accurate answers.\n\nAlways include references by citing the filename of the source material you used.\nWhen citing the reference, replace \"faq-main\" by the full path to the GitHub repository: \"https://github.com/DataTalksClub/faq/blob/main/\"\nFormat: [LINK TITLE](FULL_GITHUB_LINK)\n\nIf the search doesn't return relevant results, let the user know and provide general guidance.",
+      "kind": "request",
+      "run_id": "019f60b5-eff0-7188-bcb9-48d91464c3de",
+      "conversation_id": "019f60b5-eff0-7188-bcb9-48d871b8f3ac",
+      "metadata": null,
+      "state": "complete"
+    },
+    {
+      "parts": [
+        {
+          "content": "We need to search the FAQ for dbt Cloud connection to BigQuery with Workload Identity Federation.",
+          "id": null,
+          "signature": null,
+          "provider_name": null,
+          "provider_details": null,
+          "part_kind": "thinking"
+        },
+        {
+          "tool_name": "text_search",
+          "args": "{\"query\":\"dbt Cloud connection BigQuery Workload Identity Federation Save button Retry organization policy blocking\"}",
+          "tool_call_id": "fc_d25ee08b-a3a0-413c-8188-4d35ea2ac99e",
+          "tool_kind": null,
+          "id": null,
+          "provider_name": null,
+          "provider_details": null,
+          "part_kind": "tool-call"
+        }
+      ],
+      "usage": {
+        "input_tokens": 335,
+        "cache_write_tokens": 0,
+        "cache_read_tokens": 0,
+        "output_tokens": 63,
+        "input_audio_tokens": 0,
+        "cache_audio_read_tokens": 0,
+        "output_audio_tokens": 0,
+        "details": {
+          "reasoning_tokens": 21
+        }
+      },
+      "model_name": "openai/gpt-oss-120b",
+      "timestamp": "2026-07-14T12:59:27.597400+00:00",
+      "kind": "response",
+      "provider_name": "groq",
+      "provider_url": "https://api.groq.com",
+      "provider_details": {
+        "finish_reason": "tool_calls",
+        "timestamp": "2026-07-14T12:59:28+00:00"
+      },
+      "provider_response_id": "chatcmpl-57c3eebd-484a-4277-8f99-5559534da4e0",
+      "finish_reason": "tool_call",
+      "run_id": "019f60b5-eff0-7188-bcb9-48d91464c3de",
+      "conversation_id": "019f60b5-eff0-7188-bcb9-48d871b8f3ac",
+      "metadata": null,
+      "state": "complete"
+    },
+    {
+      "parts": [
+        {
+          "tool_name": "text_search",
+          "content": [
+            {
+              "id": "f57e5cb1f4",
+              "question": "dbt Cloud: Connecting to BigQuery via Workload Identity Federation won't work \u2014 how to fix it?",
+              "sort_order": 62,
+              "content": "When setting up a dbt Cloud connection to BigQuery, you might try using **Workload Identity Federation (WIF)** instead of a JSON service account key \u2014 especially if your GCP organization has disabled service account key creation.\n\n**This route does not work reliably with dbt Cloud.** The \"Save\" button keeps turning into \"Retry\" regardless of your WIF configuration (pool, principal, OAuth client, etc.).\n\nThe solution is to remove the organization policy that blocks service account key creation:\n\n1. Grant yourself **Service Account Key Admin** and **Organization Policy Administrator** roles at the organization level.\n\n2. Delete the policy that prevents key creation:\n```bash\ngcloud org-policies delete iam.disableServiceAccountKeyCreation --organization=[your-org-id]\n```\n\nNote: Manually disabling legacy and enforced policies via the GCP Console may not work \u2014 the CLI command above is what actually removes the restriction.\n\n3. Now you can create a JSON key for your BigQuery service account and proceed with the normal dbt Cloud setup.",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-4/062_f57e5cb1f4_dbt-cloud-bigquery-wif-service-account-key.md"
+            },
+            {
+              "id": "b98d573ce2",
+              "images": [
+                {
+                  "description": "image #1",
+                  "id": "image_1",
+                  "path": "images/data-engineering-zoomcamp/image_85e101a4.png"
+                }
+              ],
+              "question": "GCP BQ: Remember to save your queries",
+              "sort_order": 9,
+              "content": "It's important to save your progress in the BigQuery SQL Editor frequently.\n\nHere are some tips:\n\n- **Save Regularly:** Use the save button at the top bar in the BigQuery SQL Editor. Your saved queries will be available on the left panel.\n\n  <{IMAGE:image_1}>\n\n- **Alternative Method:** Copy and paste your queries into a file using a text editor like Notepad++ or VS Code. Save it with a `.sql` extension to benefit from syntax highlighting.\n\nBy following these methods, you can avoid losing your work in case of unexpected browser issues.",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-3/009_b98d573ce2_gcp-bq-remember-to-save-your-queries.md"
+            },
+            {
+              "id": "b4a5d32d6b",
+              "question": "Setup: Connecting dbt Cloud with BigQuery Error",
+              "sort_order": 6,
+              "content": "**Runtime Error**\n\ndbt was unable to connect to the specified database.\n\nThe database returned the following error:\n\n```plaintext\nDatabase Error\n\nAccess Denied: Project <project_name>: User does not have bigquery.jobs.create permission in project <project_name>.\n```\n\nCheck your database credentials and try again. For more information, visit:\n\n[docs.getdbt.com](https://docs.getdbt.com/docs/configure-your-profile)\n\n**Steps to resolve error in Google Cloud:**\n\n1. Navigate to IAM & Admin and select IAM.\n2. Click Grant Access if your newly created dbt service account isn't listed.\n3. In the New principals field, add your service account.\n4. Select a Role and search for BigQuery Job User to add.\n5. Go back to dbt Cloud project setup and test your connection.\n6. **Note:** Also add BigQuery Data Owner, Storage Object Admin, & Storage Admin to prevent permission issues later in the course.\n\n<{IMAGE:image_id}>",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-4/006_b4a5d32d6b_setup-connecting-dbt-cloud-with-bigquery-error.md"
+            },
+            {
+              "id": "06c61761df",
+              "question": "GCP: How do I create a service account key when 'service account key creation is disabled'?",
+              "sort_order": 21,
+              "content": "This error occurs when your organization has a policy that disables service account key creation. You can disable this policy using either the GCP Console or gcloud CLI.\n\n**Option 1: Using GCP Console**\n\n1. Go to the [IAM dashboard](https://console.cloud.google.com/iam-admin/iam) (IAM & Admin > IAM)\n2. Press Ctrl + O and make sure you select your organization\n3. Click the \"Edit Principal\" button (pencil icon) next to your account\n4. Search for \"Organization Policy Administrator\" role, add it and click save\n5. On the left sidebar, go to [Organization Policies](https://console.cloud.google.com/iam-admin/orgpolicies/list)\n6. Look for the policy named \"Disable service account key creation\" that is active and select it\n7. Click on \"Manage policy\" then click on the drop down that says \"Enforced\", set it to \"Off\"\n8. Click \"Done\" and then the blue \"Set policy\" button\n\n**Option 2: Using gcloud CLI**\n\n```bash\n# Get your organization ID\ngcloud organizations list\n\n# Get your account email\ngcloud auth list\n\n# Add policy admin role if needed\ngcloud organizations add-iam-policy-binding <ORGANIZATION_ID> \\\n  --member=\"user:<YOUR_ACCOUNT_EMAIL>\" \\\n  --role=\"roles/orgpolicy.policyAdmin\"\n\n# Delete the policy\ngcloud org-policies delete iam.disableServiceAccountKeyCreation \\\n  --organization=<ORGANIZATION_ID>\n```\n\nReference: [GCP Organization Policies](https://cloud.google.com/resource-manager/docs/secure-by-default-organizations#disable_organization_policies)",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-1-gcp/021_06c61761df_gcp-service-account-key-creation-disabled.md"
+            },
+            {
+              "id": "44ff6ae3df",
+              "question": "dbt cloud Developer",
+              "sort_order": 2,
+              "content": "Please be aware that the demos are done using dbt cloud Developer licensing. Although Team license is available to you upon creation of dbt cloud account for 14 days, the interface won't fully match the demo-ed experience.",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-4/002_44ff6ae3df_dbt-cloud-developer.md"
+            }
+          ],
+          "tool_call_id": "fc_d25ee08b-a3a0-413c-8188-4d35ea2ac99e",
+          "tool_kind": null,
+          "metadata": null,
+          "timestamp": "2026-07-14T12:59:27.600540+00:00",
+          "outcome": "success",
+          "part_kind": "tool-return"
+        }
+      ],
+      "timestamp": "2026-07-14T12:59:27.600874+00:00",
+      "instructions": "You are a helpful assistant for a course.\n\nUse the search tool to find relevant information from the course materials before answering questions.\n\nIf you can find specific information through search, use it to provide accurate answers.\n\nAlways include references by citing the filename of the source material you used.\nWhen citing the reference, replace \"faq-main\" by the full path to the GitHub repository: \"https://github.com/DataTalksClub/faq/blob/main/\"\nFormat: [LINK TITLE](FULL_GITHUB_LINK)\n\nIf the search doesn't return relevant results, let the user know and provide general guidance.",
+      "kind": "request",
+      "run_id": "019f60b5-eff0-7188-bcb9-48d91464c3de",
+      "conversation_id": "019f60b5-eff0-7188-bcb9-48d871b8f3ac",
+      "metadata": null,
+      "state": "complete"
+    },
+    {
+      "parts": [
+        {
+          "content": "The search result includes entry id f57e5cb1f4 which is exactly about dbt Cloud connecting to BigQuery via Workload Identity Federation and Save button turning to Retry. So answer: organization policy that disables service account key creation (iam.disableServiceAccountKeyCreation). To fix: remove that policy, grant Service Account Key Admin and Organization Policy Administrator roles, then delete policy using gcloud org-policies delete iam.disableServiceAccountKeyCreation --organization=ORG_ID. Provide steps.\n\nNeed to cite the source file: path is \"faq-main/_questions/data-engineering-zoomcamp/module-4/062_f57e5cb1f4_dbt-cloud-bigquery-wif-service-account-key.md\". Provide full GitHub link: https://github.com/DataTalksClub/faq/blob/main/faq-main/_questions/data-engineering-zoomcamp/module-4/062_f57e5cb1f4_dbt-cloud-bigquery-wif-service-account-key.md\n\nNow craft answer.",
+          "id": null,
+          "signature": null,
+          "provider_name": null,
+          "provider_details": null,
+          "part_kind": "thinking"
+        },
+        {
+          "content": "The \u201cSave\u201d button turning into **Retry** is a symptom of an **organization policy that blocks Service\u2011Account key creation**.  \nWhen that policy (`iam.disableServiceAccountKeyCreation`) is enforced, dbt Cloud can\u2019t obtain the JSON key it needs for a BigQuery connection, so the UI never succeeds.\n\n### Which policy is causing the problem?\n`iam.disableServiceAccountKeyCreation` \u2013 the \u201cDisable service account key creation\u201d organization policy.\n\n### How to fix it  \n\n1. **Give yourself the required roles** (if you don\u2019t already have them) at the organization level:  \n   * **Service Account Key Admin** (`roles/iam.serviceAccountKeyAdmin`)  \n   * **Organization Policy Administrator** (`roles/orgpolicy.policyAdmin`)\n\n2. **Delete/disable the policy** that blocks key creation. The most reliable way is via the `gcloud` CLI:\n\n   ```bash\n   # Find your organization ID\n   gcloud organizations list\n\n   # (Optional) Add the policy\u2011admin role to your account\n   gcloud organizations add-iam-policy-binding <ORG_ID> \\\n     --member=\"user:<YOUR_EMAIL>\" \\\n     --role=\"roles/orgpolicy.policyAdmin\"\n\n   # Remove the disabling policy\n   gcloud org-policies delete iam.disableServiceAccountKeyCreation \\\n     --organization=<ORG_ID>\n   ```\n\n   *If you prefer the console, you can also turn the policy \u201cOff\u201d under **IAM & Admin \u2192 Organization Policies**, but the CLI command above guarantees the restriction is removed.*\n\n3. **Create a JSON service\u2011account key** for the BigQuery service account (or reuse an existing one) and use that key in the dbt Cloud connection setup.\n\n4. **Return to dbt Cloud**, fill in the BigQuery credentials (project ID, dataset, and the JSON key), and click **Save**. The button should now stay on **Save** (or show **Success**) instead of reverting to **Retry**.\n\n---\n\n**Reference**: The issue and solution are described in the FAQ entry \u201c[dbt Cloud: Connecting to BigQuery via Workload Identity Federation won\u2019t work \u2014 how to fix it?]\u201d(https://github.com/DataTalksClub/faq/blob/main/faq-main/_questions/data-engineering-zoomcamp/module-4/062_f57e5cb1f4_dbt-cloud-bigquery-wif-service-account-key.md).",
+          "id": null,
+          "provider_name": null,
+          "provider_details": null,
+          "part_kind": "text"
+        }
+      ],
+      "usage": {
+        "input_tokens": 1750,
+        "cache_write_tokens": 0,
+        "cache_read_tokens": 0,
+        "output_tokens": 708,
+        "input_audio_tokens": 0,
+        "cache_audio_read_tokens": 0,
+        "output_audio_tokens": 0,
+        "details": {
+          "reasoning_tokens": 203
+        }
+      },
+      "model_name": "openai/gpt-oss-120b",
+      "timestamp": "2026-07-14T12:59:44.698873+00:00",
+      "kind": "response",
+      "provider_name": "groq",
+      "provider_url": "https://api.groq.com",
+      "provider_details": {
+        "finish_reason": "stop",
+        "timestamp": "2026-07-14T12:59:45+00:00"
+      },
+      "provider_response_id": "chatcmpl-85908973-b9fb-4209-ba21-e7c9d9847e91",
+      "finish_reason": "stop",
+      "run_id": "019f60b5-eff0-7188-bcb9-48d91464c3de",
+      "conversation_id": "019f60b5-eff0-7188-bcb9-48d871b8f3ac",
+      "metadata": null,
+      "state": "complete"
+    }
+  ],
+  "source": "ai-generated"
+}

@@ -1,0 +1,182 @@
+{
+  "agent_name": "faq_agent_v2",
+  "system_prompt": [
+    "\nYou are a helpful assistant for a course.\n\nUse the search tool to find relevant information from the course materials before answering questions.\n\nIf you can find specific information through search, use it to provide accurate answers.\n\nAlways include references by citing the filename of the source material you used.\nWhen citing the reference, replace \"faq-main\" by the full path to the GitHub repository: \"https://github.com/DataTalksClub/faq/blob/main/\"\nFormat: [LINK TITLE](FULL_GITHUB_LINK)\n\nIf the search doesn't return relevant results, let the user know and provide general guidance.\n"
+  ],
+  "provider": "groq",
+  "model": "openai/gpt-oss-120b",
+  "tools": [
+    "text_search"
+  ],
+  "messages": [
+    {
+      "parts": [
+        {
+          "content": "BigQuery is importing my Parquet files and treating timestamp columns as INT64\u2014how can I ensure the Parquet file stores timestamps with the proper TIMESTAMP type when writing from pandas?",
+          "timestamp": "2026-07-14T13:03:46.833888+00:00",
+          "part_kind": "user-prompt"
+        }
+      ],
+      "timestamp": "2026-07-14T13:03:46.834164+00:00",
+      "instructions": "You are a helpful assistant for a course.\n\nUse the search tool to find relevant information from the course materials before answering questions.\n\nIf you can find specific information through search, use it to provide accurate answers.\n\nAlways include references by citing the filename of the source material you used.\nWhen citing the reference, replace \"faq-main\" by the full path to the GitHub repository: \"https://github.com/DataTalksClub/faq/blob/main/\"\nFormat: [LINK TITLE](FULL_GITHUB_LINK)\n\nIf the search doesn't return relevant results, let the user know and provide general guidance.",
+      "kind": "request",
+      "run_id": "019f60b9-f290-7059-9b21-6b544de49a69",
+      "conversation_id": "019f60b9-f290-7059-9b21-6b53c84b1b3c",
+      "metadata": null,
+      "state": "complete"
+    },
+    {
+      "parts": [
+        {
+          "content": "The user asks: \"BigQuery is importing my Parquet files and treating timestamp columns as INT64\u2014how can I ensure the Parquet file stores timestamps with the proper TIMESTAMP type when writing from pandas?\" Need to reference course material. Likely there is a FAQ entry about Parquet timestamp handling. Use search.",
+          "id": null,
+          "signature": null,
+          "provider_name": null,
+          "provider_details": null,
+          "part_kind": "thinking"
+        },
+        {
+          "tool_name": "text_search",
+          "args": "{\"query\":\"BigQuery parquet timestamp int64 pandas parquet timestamp type\"}",
+          "tool_call_id": "fc_e14d5ec3-d1e8-4559-a921-769b734c37cf",
+          "tool_kind": null,
+          "id": null,
+          "provider_name": null,
+          "provider_details": null,
+          "part_kind": "tool-call"
+        }
+      ],
+      "usage": {
+        "input_tokens": 329,
+        "cache_write_tokens": 0,
+        "cache_read_tokens": 0,
+        "output_tokens": 101,
+        "input_audio_tokens": 0,
+        "cache_audio_read_tokens": 0,
+        "output_audio_tokens": 0,
+        "details": {
+          "reasoning_tokens": 65
+        }
+      },
+      "model_name": "openai/gpt-oss-120b",
+      "timestamp": "2026-07-14T13:03:56.713626+00:00",
+      "kind": "response",
+      "provider_name": "groq",
+      "provider_url": "https://api.groq.com",
+      "provider_details": {
+        "finish_reason": "tool_calls",
+        "timestamp": "2026-07-14T13:03:57+00:00"
+      },
+      "provider_response_id": "chatcmpl-2cbbea6f-96cd-4c6a-bd2f-dfc76de2344a",
+      "finish_reason": "tool_call",
+      "run_id": "019f60b9-f290-7059-9b21-6b544de49a69",
+      "conversation_id": "019f60b9-f290-7059-9b21-6b53c84b1b3c",
+      "metadata": null,
+      "state": "complete"
+    },
+    {
+      "parts": [
+        {
+          "tool_name": "text_search",
+          "content": [
+            {
+              "id": "a83247e572",
+              "question": "BigQuery: Datetime columns in Parquet files created from Pandas show up as integer columns in BigQuery",
+              "sort_order": 13,
+              "content": "When writing Parquet files from a Pandas DataFrame, Pandas may emit timestamp columns as integers (epoch milliseconds) by default. When BigQuery loads those files it sees raw `INT64` values and won't auto-promote them to `TIMESTAMP`.\n\nSolution 1: Coerce timestamps when writing the Parquet file\n\nUse PyArrow with `coerce_timestamps='us'` so the file carries proper `TIMESTAMP(MICROS)` logical types:\n\n```python\nimport pyarrow as pa\nimport pyarrow.parquet as pq\n\ntable = pa.Table.from_pandas(df, preserve_index=False)\n\npq.write_table(\n    table,\n    'gs://<bucket>/<path>.parquet',\n    # Force TIMESTAMP(MICROS) so BigQuery loads the column as TIMESTAMP\n    coerce_timestamps='us',\n    filesystem=pa.fs.GcsFileSystem(),\n)\n```\n\nSolution 2: Provide an explicit schema\n\nIf you want full control over column types, pass an explicit PyArrow schema instead of relying on inference:\n\n```python\nschema = pa.schema([\n    ('vendor_id', pa.int64()),\n    ('lpep_pickup_datetime', pa.timestamp('us')),\n    ('lpep_dropoff_datetime', pa.timestamp('us')),\n    # ...\n])\n\ntable = pa.Table.from_pandas(df, schema=schema)\n```\n\nEither approach also works inside an orchestrator's data-export task \u2014 adapt the `pq.write_table` call to fit your task's signature.",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-3/013_a83247e572_gcp-bq-datetime-columns-in-parquet-files-created-f.md"
+            },
+            {
+              "id": "66d3c42dd4",
+              "question": "GCP BQ: How to handle type error from BigQuery and Parquet data?",
+              "sort_order": 19,
+              "content": "When injecting data into GCS using Pandas, some datasets might have missing values in the `DOlocationID` and `PUlocationID` columns. By default, Pandas will cast these columns as `float`, leading to inconsistent data types between the Parquet files in GCS and the schema defined in BigQuery. You might encounter the following error:\n\n```bash\nerror: Error while reading table: trips_data_all.external_fhv_tripdata, error message: Parquet column 'DOlocationID' has type INT64 which does not match the target cpp_type DOUBLE.\n```\n\nFix the data type issue in the data pipeline:\n\n1. Before injecting data into GCS, use `astype` and `Int64` (which is different from `int64` and accepts both missing values and integers) to cast the columns.\n\n    Example:\n    ```python\n    df[\"PUlocationID\"] = df.PUlocationID.astype(\"Int64\")\n    df[\"DOlocationID\"] = df.DOlocationID.astype(\"Int64\")\n    ```\n\n2. It is best to define the data type of all the columns in the Transformation section of the ETL pipeline before loading to BigQuery.",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-3/019_66d3c42dd4_gcp-bq-how-to-handle-type-error-from-bigquery-and.md"
+            },
+            {
+              "id": "8c9b0fdaa5",
+              "question": "Schema and type errors when ingesting FHV data (timestamps fail to parse, Parquet column type mismatches, NULL handling)",
+              "sort_order": 51,
+              "content": "The FHV 2019 dataset has multiple schema gotchas. The fix depends on which file format you ingested.\n\n**CSV: timestamps fail to parse**\n\n```\nCould not parse 'pickup_datetime' as a timestamp\n```\n\nDefine the timestamp columns as `STRING` in the external table, then cast them in the staging model. This avoids BigQuery rejecting rows with malformed timestamps at load time:\n\n```sql\nCREATE OR REPLACE EXTERNAL TABLE `gcp_project.trips_data_all.fhv_tripdata` (\n  dispatching_base_num STRING,\n  pickup_datetime STRING,\n  dropoff_datetime STRING,\n  PUlocationID STRING,\n  DOlocationID STRING,\n  SR_Flag STRING,\n  Affiliated_base_number STRING\n)\nOPTIONS (\n  format = 'csv',\n  uris = ['gs://bucket/*.csv']\n);\n```\n\nIn your staging model, cast through `TIMESTAMP(CAST(... AS STRING))`:\n\n```sql\nSELECT\n  TIMESTAMP(CAST(pickup_datetime AS STRING)) AS pickup_datetime,\n  TIMESTAMP(CAST(dropoff_datetime AS STRING)) AS dropoff_datetime,\n  ...\nFROM {{ ref('stg_fhv_tripdata') }}\n```\n\nTo skip type-detection issues entirely, you can also load with `bq load --autodetect --allow_quoted_newlines --source_format=CSV` from a `.csv.gz` file in GCS \u2014 see the BigQuery CLI external-table FAQ.\n\n**Parquet: column type mismatch (FLOAT vs INT) or NULL location IDs**\n\n```\nParquet column 'PULocationID' has type INT64 which does not match the target cpp_type DOUBLE\nCould not parse SR_Flag as Float64\n```\n\nPandas reads integer columns with NULL values as floats by default, which produces a Parquet file with `DOUBLE` columns. BigQuery's external table then conflicts with your declared schema.\n\nTwo options:\n\na) Define the external table schema with `FLOAT64` for the offending location ID columns (matches what Parquet actually has):\n\n```sql\nCREATE OR REPLACE EXTERNAL TABLE `dw-bigquery-week-3.trips_data_all.external_tlc_fhv_trips_2019` (\n  dispatching_base_num STRING,\n  pickup_datetime TIMESTAMP,\n  dropoff_datetime TIMESTAMP,\n  PUlocationID FLOAT64,\n  DOlocationID FLOAT64,\n  SR_Flag FLOAT64,\n  Affiliated_base_number STRING\n)\nOPTIONS (\n  format = 'PARQUET',\n  uris = ['gs://project/fhv_2019_*.parquet']\n);\n```\n\nb) Fix the Parquet at write time by using pandas' nullable `Int64`:\n\n```python\ndf['PUlocationID'] = df['PUlocationID'].astype('Int64')\ndf['DOlocationID'] = df['DOlocationID'].astype('Int64')\n```\n\nOr coerce the whole DataFrame:\n\n```python\ndf.fillna(-999999, inplace=True)\ndf = df.convert_dtypes()\ndf = df.replace(-999999, None)\n```\n\nThis produces a Parquet file with the right INT64 schema and avoids the issue downstream.\n\n**When the column types differ between months**\n\nSome FHV month files have `PUlocationID` as INT, others as FLOAT, leading to:\n\n```\nerror: Error while reading data: Parquet column 'PUlocationID' has type INT which does not match the target cpp_type DOUBLE\n```\n\nThe first file BigQuery loads defines the table schema, and subsequent files with a different schema fail. Force consistent types when generating the Parquet (option b above) or load the months that have the same schema in groups.\n\n**\"Bad int64 value\" on cast in the dbt model**\n\nFor `ehail_fee`, `ratecodeid`, `trip_type`, etc. \u2014 see the dedicated bad-int64 / parquet-schema FAQ.",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-4/051_8c9b0fdaa5_invalid-date-types-after-ingesting-fhv-data-throug.md"
+            },
+            {
+              "id": "9f2048fc73",
+              "question": "\"Bad int64 value\" / Parquet column has type DOUBLE which does not match INT64 \u2014 casting failures on green tripdata",
+              "sort_order": 37,
+              "content": "Several columns in the green taxi data \u2014 `ehail_fee`, `ratecodeid`, `trip_type`, `payment_type` \u2014 can fail to cast to `INT64` for two related reasons:\n\n- The Parquet file stores the column as `DOUBLE` (BigQuery sees the schema mismatch directly).\n- The values look like `1.0`, `2.0`, etc. \u2014 they're whole numbers but stored as floats, which BigQuery's `INT64` cast rejects.\n\nYou'll see errors like:\n\n```\nParquet column 'ehail_fee' has type DOUBLE which does not match the target cpp_type INT64\nBad int64 value: 0.0\nBad int64 value: 1.0\n```\n\n**Option 1: Use `safe_cast` in your dbt model**\n\n`safe_cast` returns NULL instead of erroring on a failed cast:\n\n```sql\n{{ dbt.safe_cast('ehail_fee', api.Column.translate_type(\"numeric\")) }} as ehail_fee,\n```\n\nOr without `dbt_utils`:\n\n```sql\nsafe_cast(ehail_fee as numeric) as ehail_fee\n```\n\nFor `ehail_fee` specifically, prefer `numeric` over `integer` \u2014 fees aren't always whole numbers.\n\n**Option 2: Drop the column**\n\nIf the column isn't used downstream, just drop it:\n\n```sql\nSELECT * EXCEPT (ehail_fee) FROM ...\n```\n\n**Option 3: Strip the trailing `.0` before casting**\n\nUseful for fields like `ratecodeid` and `trip_type` where the values really are integers but stored as floats:\n\n```sql\nCAST(REGEXP_REPLACE(CAST(rate_code AS STRING), r'\\.0$', '') AS INT64) AS ratecodeid,\n\nCAST(\n    CASE\n        WHEN REGEXP_CONTAINS(CAST(trip_type AS STRING), r'\\.\\d+') THEN NULL\n        ELSE CAST(trip_type AS INT64)\n    END AS INT64\n) AS trip_type\n```\n\n**Option 4: Fix the upstream Parquet schema**\n\nIf you control the ingestion, cast to `Int64` (pandas nullable int) before writing:\n\n```python\ndf['ehail_fee'] = df['ehail_fee'].astype('Int64')\n```\n\nThis produces a Parquet file with the right schema and avoids the issue entirely.",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-4/037_9f2048fc73_bad-int64-value-00-error.md"
+            },
+            {
+              "id": "1724e08426",
+              "question": "GCP BQ: Unable to load data from external tables into a materialized table in BigQuery due to an invalid timestamp error that are added while appending data to the file in Google Cloud Storage",
+              "sort_order": 11,
+              "content": "```plaintext\ncould not parse 'pickup_datetime' as timestamp for field pickup_datetime (position 2)\n```\n\nThis error is caused by invalid data in the timestamp column. To resolve this issue:\n\n1. Define the schema of the external table using the `STRING` datatype for the timestamp column. This allows queries to execute without errors.\n2. Filter out the invalid timestamp rows during data import.\n3. Insert the filtered rows into the materialized table, specifying the `TIMESTAMP` datatype for the timestamp fields.",
+              "filename": "faq-main/_questions/data-engineering-zoomcamp/module-3/011_1724e08426_gcp-bq-unable-to-load-data-from-external-tables-in.md"
+            }
+          ],
+          "tool_call_id": "fc_e14d5ec3-d1e8-4559-a921-769b734c37cf",
+          "tool_kind": null,
+          "metadata": null,
+          "timestamp": "2026-07-14T13:03:56.716822+00:00",
+          "outcome": "success",
+          "part_kind": "tool-return"
+        }
+      ],
+      "timestamp": "2026-07-14T13:03:56.717138+00:00",
+      "instructions": "You are a helpful assistant for a course.\n\nUse the search tool to find relevant information from the course materials before answering questions.\n\nIf you can find specific information through search, use it to provide accurate answers.\n\nAlways include references by citing the filename of the source material you used.\nWhen citing the reference, replace \"faq-main\" by the full path to the GitHub repository: \"https://github.com/DataTalksClub/faq/blob/main/\"\nFormat: [LINK TITLE](FULL_GITHUB_LINK)\n\nIf the search doesn't return relevant results, let the user know and provide general guidance.",
+      "kind": "request",
+      "run_id": "019f60b9-f290-7059-9b21-6b544de49a69",
+      "conversation_id": "019f60b9-f290-7059-9b21-6b53c84b1b3c",
+      "metadata": null,
+      "state": "complete"
+    },
+    {
+      "parts": [
+        {
+          "content": "We have result id 0 (a83247e572) that matches exactly: \"BigQuery: Datetime columns in Parquet files created from Pandas show up as integer columns in BigQuery\". That's the answer. Need to provide solution: use pyarrow write_table with coerce_timestamps='us' and possibly schema specifying timestamp('us'). Provide code example.\n\nNeed to cite source: the file path: \"faq-main/_questions/data-engineering-zoomcamp/module-3/013_a83247e572_gcp-bq-datetime-columns-in-parquet-files-created-f.md\". Must format link: replace faq-main with full path. So link: https://github.com/DataTalksClub/faq/blob/main/_questions/data-engineering-zoomcamp/module-3/013_a83247e572_gcp-bq-datetime-columns-in-parquet-files-created-f.md\n\nProvide answer.",
+          "id": null,
+          "signature": null,
+          "provider_name": null,
+          "provider_details": null,
+          "part_kind": "thinking"
+        },
+        {
+          "content": "When you write a\u202f`pandas`\u202fDataFrame to Parquet, Pandas (via\u202f`pyarrow`) often stores\u202f`datetime64[ns]`\u202fcolumns as plain\u202f`int64`\u202fepoch\u2011milliseconds.  \nBigQuery reads those raw integers as\u202f`INT64`, so the columns appear as integers instead of\u202f`TIMESTAMP`.\n\n### Fix\u202f\u2014\u202fwrite the Parquet file with a proper\u202f`TIMESTAMP`\u202flogical type\n\n```python\nimport pandas as pd\nimport pyarrow as pa\nimport pyarrow.parquet as pq\n\n# df is your pandas DataFrame that contains datetime columns\n# Example:\n# df['pickup_datetime']  = pd.to_datetime(df['pickup_datetime'])\n# df['dropoff_datetime'] = pd.to_datetime(df['dropoff_datetime'])\n\n# Convert the DataFrame to an Arrow table, preserving the pandas dtypes\ntable = pa.Table.from_pandas(df, preserve_index=False)\n\n# Write the table to GCS (or local) and **force timestamps to microseconds**\npq.write_table(\n    table,\n    'gs://my-bucket/path/trips.parquet',      # or a local file path\n    coerce_timestamps='us',                  # <-- key flag\n    allow_truncated_timestamps=False,\n    filesystem=pa.fs.GcsFileSystem()         # omit if writing locally\n)\n```\n\n* `coerce_timestamps='us'` tells\u202f`pyarrow`\u202fto store any datetime column using the Arrow logical type\u202f`timestamp('us')`.  \n  BigQuery recognizes this Arrow logical type and loads the column as a native\u202f`TIMESTAMP`\u202ffield.\n\n### Alternative: supply an explicit Arrow schema\n\nIf you want complete control over column types, build an explicit schema and pass it to `Table.from_pandas`:\n\n```python\nschema = pa.schema([\n    ('vendor_id',          pa.int64()),\n    ('pickup_datetime',   pa.timestamp('us')),\n    ('dropoff_datetime',  pa.timestamp('us')),\n    # ... other columns \u2026\n])\n\ntable = pa.Table.from_pandas(df, schema=schema, preserve_index=False)\n\npq.write_table(\n    table,\n    'gs://my-bucket/path/trips.parquet',\n    coerce_timestamps='us',\n    filesystem=pa.fs.GcsFileSystem()\n)\n```\n\n### What happens in BigQuery\n\n* When the Parquet file carries the Arrow\u202f`timestamp('us')`\u202flogical type, BigQuery automatically maps it to the `TIMESTAMP` data type.\n* If the file only contains raw `INT64` values (the default behavior without `coerce_timestamps`), BigQuery leaves the column as `INT64`, which is why you observed the integer type.\n\n### Summary\n\n1. **Convert the DataFrame to an Arrow table** (`pa.Table.from_pandas`).  \n2. **Write the table with `coerce_timestamps='us'`** (or supply a schema that uses `pa.timestamp('us')`).  \n3. Load the Parquet file into BigQuery \u2013 the timestamp columns will now appear as `TIMESTAMP`.\n\nFor the full context and code snippet, see the FAQ entry:\n\n[BigQuery: Datetime columns in Parquet files created from Pandas show up as integer columns in BigQuery](https://github.com/DataTalksClub/faq/blob/main/_questions/data-engineering-zoomcamp/module-3/013_a83247e572_gcp-bq-datetime-columns-in-parquet-files-created-f.md)",
+          "id": null,
+          "provider_name": null,
+          "provider_details": null,
+          "part_kind": "text"
+        }
+      ],
+      "usage": {
+        "input_tokens": 2936,
+        "cache_write_tokens": 0,
+        "cache_read_tokens": 256,
+        "output_tokens": 917,
+        "input_audio_tokens": 0,
+        "cache_audio_read_tokens": 0,
+        "output_audio_tokens": 0,
+        "details": {
+          "reasoning_tokens": 183
+        }
+      },
+      "model_name": "openai/gpt-oss-120b",
+      "timestamp": "2026-07-14T13:04:21.183976+00:00",
+      "kind": "response",
+      "provider_name": "groq",
+      "provider_url": "https://api.groq.com",
+      "provider_details": {
+        "finish_reason": "stop",
+        "timestamp": "2026-07-14T13:04:21+00:00"
+      },
+      "provider_response_id": "chatcmpl-672b4432-b61b-450c-bbbf-89b521eec82e",
+      "finish_reason": "stop",
+      "run_id": "019f60b9-f290-7059-9b21-6b544de49a69",
+      "conversation_id": "019f60b9-f290-7059-9b21-6b53c84b1b3c",
+      "metadata": null,
+      "state": "complete"
+    }
+  ],
+  "source": "ai-generated"
+}
