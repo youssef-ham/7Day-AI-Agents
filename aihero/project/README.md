@@ -114,7 +114,8 @@ uv run streamlit run app.py
 
 ## 📸 Screenshot
 
-_Add a screenshot of the application here._
+![LangChain Docs Assistant](assets/1.png)
+![LangChain Docs Assistant](assets/2.png)
 
 ---
 
