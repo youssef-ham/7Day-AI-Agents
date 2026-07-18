@@ -3,86 +3,147 @@ import zipfile
 import requests
 import frontmatter
 
+from minsearch import Index
+
+
 def read_repo_data(repo_owner, repo_name):
-    """
-    Download and parse all markdown files from a GitHub repository.
+    url = f"https://codeload.github.com/{repo_owner}/{repo_name}/zip/refs/heads/main"
 
-    Args:
-        repo_owner: GitHub username or organization
-        repo_name: Repository name
-
-    Returns:
-        List of dictionaries containing file content and metadata
-    """
-    prefix = 'https://codeload.github.com'
-    url = f'{prefix}/{repo_owner}/{repo_name}/zip/refs/heads/main'
     resp = requests.get(url)
 
     if resp.status_code != 200:
-        raise Exception(f"Failed to download repository: {resp.status_code}")
+        raise Exception(
+            f"Failed to download repository: {resp.status_code}"
+        )
 
     repository_data = []
+
     zf = zipfile.ZipFile(io.BytesIO(resp.content))
 
     for file_info in zf.infolist():
-        filename = file_info.filename
-        filename_lower = filename.lower()
 
-        if not (filename_lower.endswith('.md')
-            or filename_lower.endswith('.mdx')):
+        filename = file_info.filename.lower()
+
+        if not (
+            filename.endswith(".md")
+            or filename.endswith(".mdx")
+        ):
             continue
 
         try:
-            with zf.open(file_info) as f_in:
-                content = f_in.read().decode('utf-8', errors='ignore')
+            with zf.open(file_info) as f:
+                content = (
+                    f.read()
+                    .decode(
+                        "utf-8",
+                        errors="ignore",
+                    )
+                )
+
                 post = frontmatter.loads(content)
                 data = post.to_dict()
-                data['filename'] = filename
-                repository_data.append(data)
-        except Exception as e:
-            print(f"Error processing {filename}: {e}")
-            continue
 
-    zf.close()
+                _, filename_repo = file_info.filename.split(
+                    "/",
+                    maxsplit=1,
+                )
+
+                data["filename"] = filename_repo
+
+                repository_data.append(data)
+
+        except Exception as e:
+            print(e)
+
     return repository_data
 
 
-import re
+def chunk_text(text, size=800):
+    return [
+        text[i:i + size]
+        for i in range(0, len(text), size)
+    ]
 
-def split_markdown_by_level(text, level=2):
-    """
-    Split markdown text by a specific header level.
 
-    :param text: Markdown text as a string
-    :param level: Header level to split on
-    :return: List of sections as strings
-    """
-    # This regex matches markdown headers
-    # For level 2, it matches lines starting with "## "
-    header_pattern = r'^(#{' + str(level) + r'} )(.+)$'
-    pattern = re.compile(header_pattern, re.MULTILINE)
+def chunk_documents(docs):
 
-    # Split and keep the headers
-    parts = pattern.split(text)
+    chunks = []
 
-    sections = []
-    for i in range(1, len(parts), 3):
-        # We step by 3 because regex.split() with
-        # capturing groups returns:
-        # [before_match, group1, group2, after_match, ...]
-        # here group1 is "## ", group2 is the header text
-        header = parts[i] + parts[i+1]  # "## " + "Title"
-        header = header.strip()
+    for doc in docs:
 
-        # Get the content after this header
-        content = ""
-        if i+2 < len(parts):
-            content = parts[i+2].strip()
+        content = doc.get("content", "")
 
-        if content:
-            section = f'{header}\n\n{content}'
-        else:
-            section = header
-        sections.append(section)
+        if not content:
+            continue
 
-    return sections
+        pieces = chunk_text(content, size=800)
+
+        for piece in pieces:
+
+            chunks.append(
+                {
+                    "title": doc.get(
+                        "title",
+                        "",
+                    ),
+                    "sidebarTitle": doc.get(
+                        "sidebarTitle",
+                        "",
+                    ),
+                    "name": doc.get(
+                        "name",
+                        "",
+                    ),
+                    "description": doc.get(
+                        "description",
+                        "",
+                    ),
+                    "filename": doc.get(
+                        "filename",
+                        "",
+                    ),
+                    "content": piece,
+                }
+            )
+
+    return chunks
+
+
+def index_data(
+    repo_owner,
+    repo_name,
+    filter=None,
+):
+
+    docs = read_repo_data(
+        repo_owner,
+        repo_name,
+    )
+
+    if filter is not None:
+        docs = [
+            doc
+            for doc in docs
+            if filter(doc)
+        ]
+
+    docs = chunk_documents(docs)
+
+    print(
+        f"Indexed {len(docs)} chunks."
+    )
+
+    index = Index(
+        text_fields=[
+            "title",
+            "sidebarTitle",
+            "name",
+            "description",
+            "content",
+            "filename",
+        ]
+    )
+
+    index.fit(docs)
+
+    return index
