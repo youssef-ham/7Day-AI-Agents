@@ -8,9 +8,9 @@ The application indexes the official LangChain documentation repository, retriev
 
 ## 🚀 Demo
 
-**Live App:** https://YOUR-STREAMLIT-APP.streamlit.app
+**Live App:** https://7day-ai-agents-phzmtxnuvfrj4bvwitxgem.streamlit.app/
 
-**GitHub Repository:** https://github.com/YOUR_USERNAME/YOUR_REPOSITORY
+**GitHub Repository:** https://github.com/youssef-ham/7Day-AI-Agents/tree/main/aihero/project
 
 ---
 
@@ -55,9 +55,9 @@ The application indexes the official LangChain documentation repository, retriev
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+git clone https://github.com/youssef-ham/7Day-AI-Agents
 
-cd YOUR_REPOSITORY
+cd 7Day-AI-Agents
 ```
 
 Create a virtual environment:
